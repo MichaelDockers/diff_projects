@@ -109,8 +109,7 @@ print(*map(lambda x: 255 - x, map(int, input_string.split())))
 
 def evaluate(mult, cnt):
     coef_num = len(mult)
-    n = reduce(lambda a, b: a + b, map(lambda x, y: x * cnt ** (coef_num - y), mult, range(1, coef_num + 1)), 0)
-    return n
+    return reduce(lambda a, b: a + b, map(lambda x, y: x * cnt ** (coef_num - y), mult, range(1, coef_num + 1)), 0)
 
 
 mult = [2, 4, 3]
@@ -120,7 +119,7 @@ print(evaluate(mult, cnt))
 
 def ignore_command(command):
     ignore = ['alias', 'configuration', 'ip', 'sql', 'select', 'update', 'exec', 'del', 'truncate']
-    return any([True if x in command else False for x in ignore])
+    return any(x in command for x in ignore)
 
 print(ignore_command('get ip'))
 print(ignore_command('select all'))
@@ -274,7 +273,7 @@ print(*sorted(sample_str, key=lambda x: x.lower()))
 print(*sorted(sample_str, key=str.lower))
 
 def gematriya(x):
-    return sum([ord(w) - 65 for w in x.upper()])
+    return sum(ord(w) - 65 for w in x.upper())
 
 #words_2 = [input() for cnt in range(int(input()))]
 # print(words_2)
