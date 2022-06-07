@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 
 # Initialization block
 
@@ -47,16 +48,31 @@ def get_result_df(hist_str: str, amp_str: str, instr_str: str, instrument_name: 
     df_amplit = pd.read_csv(amp_str)
     df_instr = pd.read_csv(instr_str)
 
-    df_hist_div_amp = pd.concat([df_hist['Date'], df_hist.drop('Date', axis=1).div(df_amplit.drop('Date', axis=1).iloc[:, 0], axis=0)], axis=1)
+    df_hist_div_amp = pd.concat([df_hist['Date'], df_hist.drop('Date', axis=1).div(np.sqrt(df_amplit.drop('Date', axis=1).iloc[:, 0]), axis=0)], axis=1)
 
     df_hist_div_amp.dropna(how='all', inplace=True)
     df_hist_div_amp['Date'] = pd.to_datetime(df_hist_div_amp['Date'])
     df_hist_div_amp.set_index('Date', inplace=True)
+    # df_hist_div_amp.to_csv(f'C:\\Projects\\diff_projects\\folders\\data\\{instrument_name}.csv')
 
     df_instr['Date'] = pd.to_datetime(df_instr['Date'])
     df_instr.set_index('Date', inplace=True)
 
-    return df_hist_div_amp.mul(df_instr).sum(axis=1)
+    first_hist_idx = df_hist_div_amp.index.min()
+    last_hist_idx = df_hist_div_amp.index.max()
+
+    first_instr_idx = df_instr.index.min()
+    last_instr_idx = df_instr.index.max()
+
+    min_date = max(first_hist_idx, first_instr_idx)
+    max_date = min(last_hist_idx, last_instr_idx)
+
+    print(f'Instrument: {instrument_name}')
+    print(f'Min/Max date of history signal by sqrt of amplitude: {first_hist_idx.date()}, {last_hist_idx.date()}')
+    print(f'Min/Max date of return: {first_instr_idx.date()}, {last_instr_idx.date()}')
+    print(f'Begin and end of cut period: {min_date.date()}, {max_date.date()}')
+
+    return df_hist_div_amp.loc[min_date: max_date].mul(df_instr.loc[min_date: max_date]).sum(axis=1)
 
 
 folders = get_folders_in_history_signal(history_signal_folder)
@@ -64,7 +80,6 @@ folders = get_folders_in_history_signal(history_signal_folder)
 for folder in folders:
     instrument_name = folder.split('\\')[-1]
     history_file = f'{folder}\\{get_maxnumbered_history_file(folder)}'
-    # print(instrument_name, get_maxnumbered_history_file(folder))
     root_instrument_path = f'{root_folder}\\{instrument_name}'
     if os.path.exists(root_instrument_path):
         print(f'[+] folder {root_instrument_path} exists')
@@ -77,4 +92,4 @@ for folder in folders:
     else:
         print(f'[-] No {folder} in root directory')
 
-df.to_csv(r'E:\PythonAmp\2022-03-10 19_13_38\df_result_result.csv')
+df.to_csv(r'C:\Projects\diff_projects\folders\data\df_result_result.csv')
