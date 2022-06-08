@@ -53,12 +53,6 @@ def get_result_df(hist_str: str, amp_str: str, instr_str: str, instrument_name: 
     df_hist_div_amp.dropna(how='all', inplace=True)
     df_hist_div_amp['Date'] = pd.to_datetime(df_hist_div_amp['Date'])
     df_hist_div_amp.set_index('Date', inplace=True)
-    if pd.infer_freq(df_hist_div_amp.index) != 'B':
-        print(f'[-] {instrument_name} is not dayly. Filling forward...')
-        df_hist_div_amp.asfreq('B')
-        df_hist_div_amp = df_hist_div_amp.asfreq('B', method='ffill')
-    # df_hist_div_amp.to_csv(f'C:\\Projects\\diff_projects\\folders\\data\\{instrument_name}.csv')
-
 
     df_instr['Date'] = pd.to_datetime(df_instr['Date'])
     df_instr.set_index('Date', inplace=True)
@@ -68,6 +62,28 @@ def get_result_df(hist_str: str, amp_str: str, instr_str: str, instrument_name: 
 
     first_instr_idx = df_instr.index.min()
     last_instr_idx = df_instr.index.max()
+
+    min_date = max(first_hist_idx, first_instr_idx)
+
+    if pd.infer_freq(df_hist_div_amp.index) != 'B':
+        print(f'[-] {instrument_name} is not dayly. Filling forward...')
+        df_hist_div_amp.asfreq('B')
+        if last_hist_idx < last_instr_idx:
+            print(f'[-] {instrument_name} history signal ending before Instrument Returns. Adding last return"s date and filing NaNs')
+            print(f'Before: Max hist: {last_hist_idx}, Max inst {last_instr_idx}')
+            df_hist_div_amp.loc[pd.to_datetime(last_instr_idx)] = pd.Series(dtype='float64')
+            print(f'After: Max hist: {df_hist_div_amp.index.max()}, Max inst {last_instr_idx}')
+
+        df_hist_div_amp = df_hist_div_amp.asfreq('B', method='ffill')
+        
+        print(f'Instrument: {instrument_name}')
+        print(f'Min/Max date of history signal by sqrt of amplitude: {first_hist_idx.date()}, {last_hist_idx.date()}')
+        print(f'Min/Max date of return: {first_instr_idx.date()}, {last_instr_idx.date()}')
+        print(f'Begin and end of cut period: {min_date.date()}, {df_hist_div_amp.index.max()}')
+        
+        return df_hist_div_amp.loc[min_date: last_instr_idx].mul(df_instr.loc[min_date: last_instr_idx]).sum(axis=1)
+
+    # df_hist_div_amp.to_csv(f'C:\\Projects\\diff_projects\\folders\\data\\{instrument_name}.csv')
 
     min_date = max(first_hist_idx, first_instr_idx)
     max_date = min(last_hist_idx, last_instr_idx)
