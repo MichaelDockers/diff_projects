@@ -9,7 +9,7 @@ amp_filter_str = '1.08'
 inst_filter_str = '2.13'
 
 root_folder = 'E:\\PythonAmp\\2022-03-10 19_13_38'
-history_signal_folder = 'E:\\PythonAmp\\2022-03-10 19_13_38\\HistorySignal'
+history_signal_folder = f'{root_folder}\\HistorySignal'
 output_filename = 'output_name'
 
 df = pd.DataFrame()
@@ -53,7 +53,12 @@ def get_result_df(hist_str: str, amp_str: str, instr_str: str, instrument_name: 
     df_hist_div_amp.dropna(how='all', inplace=True)
     df_hist_div_amp['Date'] = pd.to_datetime(df_hist_div_amp['Date'])
     df_hist_div_amp.set_index('Date', inplace=True)
+    if pd.infer_freq(df_hist_div_amp.index) != 'B':
+        print(f'[-] {instrument_name} is not dayly. Filling forward...')
+        df_hist_div_amp.asfreq('B')
+        df_hist_div_amp = df_hist_div_amp.asfreq('B', method='ffill')
     # df_hist_div_amp.to_csv(f'C:\\Projects\\diff_projects\\folders\\data\\{instrument_name}.csv')
+
 
     df_instr['Date'] = pd.to_datetime(df_instr['Date'])
     df_instr.set_index('Date', inplace=True)
@@ -92,4 +97,4 @@ for folder in folders:
     else:
         print(f'[-] No {folder} in root directory')
 
-df.to_csv(r'C:\Projects\diff_projects\folders\data\df_result_result.csv')
+df.to_csv(f'{root_folder}\\df_result_result.csv')
