@@ -1,4 +1,6 @@
 import os
+from textwrap import indent
+from matplotlib import dates
 import pandas as pd
 import numpy as np
 
@@ -12,7 +14,7 @@ root_folder = 'E:\\PythonAmp\\2022-03-10 19_13_38'
 history_signal_folder = f'{root_folder}\\HistorySignal'
 output_filename = 'output_name'
 
-df = pd.DataFrame()
+df = pd.DataFrame(index=pd.to_datetime([]))
 
 
 def get_folders_in_history_signal(folder: str) -> list:
@@ -64,6 +66,7 @@ def get_result_df(hist_str: str, amp_str: str, instr_str: str, instrument_name: 
     last_instr_idx = df_instr.index.max()
 
     min_date = max(first_hist_idx, first_instr_idx)
+    max_date = min(last_hist_idx, last_instr_idx)
 
     if pd.infer_freq(df_hist_div_amp.index) != 'B':
         print(f'[-] {instrument_name} is not dayly. Filling forward...')
@@ -80,13 +83,8 @@ def get_result_df(hist_str: str, amp_str: str, instr_str: str, instrument_name: 
         print(f'Min/Max date of history signal by sqrt of amplitude: {first_hist_idx.date()}, {last_hist_idx.date()}')
         print(f'Min/Max date of return: {first_instr_idx.date()}, {last_instr_idx.date()}')
         print(f'Begin and end of cut period: {min_date.date()}, {df_hist_div_amp.index.max()}')
-        
-        return df_hist_div_amp.loc[min_date: last_instr_idx].mul(df_instr.loc[min_date: last_instr_idx]).sum(axis=1)
 
-    # df_hist_div_amp.to_csv(f'C:\\Projects\\diff_projects\\folders\\data\\{instrument_name}.csv')
-
-    min_date = max(first_hist_idx, first_instr_idx)
-    max_date = min(last_hist_idx, last_instr_idx)
+        return df_hist_div_amp.loc[min_date: df_instr.index.max()].mul(df_instr.loc[min_date: df_instr.index.max()]).sum(axis=1)
 
     print(f'Instrument: {instrument_name}')
     print(f'Min/Max date of history signal by sqrt of amplitude: {first_hist_idx.date()}, {last_hist_idx.date()}')
