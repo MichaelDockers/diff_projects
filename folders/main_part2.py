@@ -1,5 +1,6 @@
 import os
 from textwrap import indent
+from tkinter import image_names
 from matplotlib import dates
 import pandas as pd
 import numpy as np
@@ -9,6 +10,7 @@ import numpy as np
 factor_filter_str = '2.14'
 amp_filter_str = '1.08'
 inst_filter_str = '2.13'
+target_value = 0.3
 
 root_folder = 'E:\\PythonAmp\\2022-03-10 19_13_38'
 history_signal_folder = f'{root_folder}\\HistorySignal'
@@ -43,6 +45,7 @@ def get_result_df(hist_str: str, amp_str: str, instr_str: str, instrument_name: 
     hist_str - file with path to History Signal
     amp_str - file with path to Amplitude
     instr_str - file with path to Instrument Returns
+    instrument_name - instrument name by folder name (to name column in df)
     result = sum(all hist columns / amplit (not align by date) * Instrument Returns (by pair and align by date))
     '''
 
@@ -76,8 +79,8 @@ def get_result_df(hist_str: str, amp_str: str, instr_str: str, instrument_name: 
             print(f'Before: Max hist: {last_hist_idx}, Max inst {last_instr_idx}')
             df_hist_div_amp.loc[pd.to_datetime(last_instr_idx)] = pd.Series(dtype='float64')
             print(f'After: Max hist: {df_hist_div_amp.index.max()}, Max inst {last_instr_idx}')
-
-        df_hist_div_amp = df_hist_div_amp.asfreq('B', method='ffill')
+       
+        df_hist_div_amp = df_hist_div_amp.resample('B').asfreq().ffill()
         
         print(f'Instrument: {instrument_name}')
         print(f'Min/Max date of history signal by sqrt of amplitude: {first_hist_idx.date()}, {last_hist_idx.date()}')
@@ -111,4 +114,9 @@ for folder in folders:
     else:
         print(f'[-] No {folder} in root directory')
 
-df.to_csv(f'{root_folder}\\df_result_result.csv')
+df.to_csv(f'{root_folder}\\df_result_result.csv', index_label='Date')
+
+for col in df._get_numeric_data():
+    df[col] = df[col] * (target_value / np.std(df[col]))
+
+df.to_csv(f'{root_folder}\\df_result_vol.csv', index_label='Date')
