@@ -1,3 +1,4 @@
+from asyncore import write
 from cgi import test
 from functools import reduce
 from re import L
@@ -343,15 +344,81 @@ with open(file_path_7, 'r', encoding='utf-8') as text_file_5:
 
 file_path_8 = r'C:/Distr/file2.txt'
 with open(file_path_8, 'r', encoding='utf-8') as text_file_6:
-    loaded_text = [line.split() for line in text_file_6.readlines()]
+    row_text = [line for line in text_file_6.readlines()]
+    row_text_only_alpha = [''.join(i for i in line if i.isalpha()) for line in row_text]
+
+    loaded_text = [line.split() for line in row_text]
     print('Input file contains:')
-    print(f'{sum([sum(map(len, line)) for line in loaded_text])} letters')
+    print(f'{sum([sum(map(len, line)) for line in row_text_only_alpha])} letters')
     print(f'{sum([len(line) for line in loaded_text])} words')
     print(f'{len(loaded_text)} lines')
 
+from random import choice
+first_name_path = r'C:/Distr/first_names.txt'
+last_name_path = r'C:/Distr/last_names.txt'
+with open(first_name_path, 'r', encoding='utf-8') as first_name_file, open(last_name_path, 'r', encoding='utf-8') as last_name_file:
+    first_names = [x.replace('\n', '') for x in first_name_file.readlines()]
+    last_names = [x.replace('\n', '') for x in last_name_file.readlines()]
+    print(*[f'{choice(first_names)} {choice(last_names)}' for _ in range(3)], sep='\n')
 
-from itertools import permutations
+population_file_path = r'C:/Distr/population.txt'
+with open(population_file_path, 'r', encoding='utf-8') as p:
+    population_file = [st.strip().split('\t') for st in p.readlines()]
+    result = list(filter(lambda x: x[0].startswith('G') and int(x[1]) > 500000, population_file))
+    [print(x[0]) for x in result]
 
-in_str = 'abs'
 
-print(*permutations(in_str))
+def read_csv():
+    data_path = r'C:/Distr/data.csv'
+    with open(data_path, 'r', encoding='utf-8') as data_file:
+        data_header = data_file.readline().strip().split(',')
+        return [dict(zip(data_header, data_line.strip().split(','))) for data_line in data_file.readlines()]
+
+
+output_file = r'C:/Distr/random.txt'
+with open(output_file, 'w') as output:
+    [output.write(f'{choice(range(111, 778))}\n') for _ in range(25)]
+
+
+input_path = r'C:/Distr/input.txt'
+output_nums_path = r'C:/Distr/output.txt'
+with open(input_path, 'r') as input_file, open(output_nums_path, 'w') as output_file:
+    in_file = input_file.readlines()
+    [output_file.write(f'{idx}) {out_line}') for idx, out_line in enumerate(in_file, 1)]
+
+
+class_scores = r'C:/Distr/class_scores.txt'
+new_class_scores = r'C:/Distr/new_scores.txt'
+
+with open(class_scores, 'r', encoding='utf-8') as cs, open(new_class_scores, 'w') as ncs:
+    cs_data = [(cs_line.split()[0], int(cs_line.split()[1])) for cs_line in cs.readlines()]
+    print(cs_data)
+    [ncs.write(f'{cs_line[0]} {100 if cs_line[1] > 95 else cs_line[1] + 5}\n') for cs_line in cs_data]
+
+
+goats_path = r'C:/Distr/goats.txt'
+answer_path = r'C:/Distr/answer.txt'
+with open(goats_path, 'r') as goats, open(answer_path, 'w') as answers:
+    row_data = [goat.strip() for goat in goats.readlines()]
+    colors_list = row_data[1:row_data.index('GOATS')]
+    goats_list = row_data[row_data.index('GOATS') + 1:]
+    cnt_list = [key for key in colors_list if (goats_list.count(key) * 100 / len(row_data)) > 7]
+    [answers.write(f'{goat}\n') for goat in sorted(cnt_list)]
+
+
+# cont_path = r'C:/Distr/cont_output.txt'
+# n = int(input())
+# for _ in range(n):
+#     with open(f'C://Distr//{input()}', 'r') as in_file, open(cont_path, 'a') as out_file:
+#         out_file.write(in_file.read())
+
+from datetime import datetime, timedelta
+logfile_path = r'C:/Distr/logfile.txt'
+logfile_output = r'C:/Distr/logfile_output.txt'
+with open(logfile_path, 'r', encoding='utf-8') as logfile, open(logfile_output, 'w', encoding='utf-8') as logfile_out:
+    row_logfile = logfile.read().split('\n')
+    for log_line in row_logfile:
+        name, start, stop = log_line.split(',')
+        time_diff = datetime.strptime(stop.strip(), '%H:%M') - datetime.strptime(start.strip(), '%H:%M')
+        if time_diff >= timedelta(hours=1):
+            logfile_out.write(f'{name}\n')
